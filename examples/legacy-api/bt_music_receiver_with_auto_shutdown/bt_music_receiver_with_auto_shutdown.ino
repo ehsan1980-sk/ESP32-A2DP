@@ -18,15 +18,14 @@
 //  - Automatic shut down if no music afer 5 minutes 
 //  - The LED indicates if the ESP32 is on or off
 
-#include "AudioTools.h"  // https://github.com/pschatzmann/arduino-audio-tools
-#include "BluetoothA2DPSink.h" // https://github.com/pschatzmann/ESP32-A2DP
+#include "BluetoothA2DPSink.h"
 
 #ifndef LED_BUILTIN
-#  define LED_BUILTIN 13 // pin number is specific to your esp32 board
+#define LED_BUILTIN 13 // pin number is specific to your esp32 board
 #endif
 
-I2SStream i2s;
-BluetoothA2DPSink a2dp_sink(i2s);
+
+BluetoothA2DPSink a2dp_sink;
 esp_a2d_connection_state_t last_state;
 uint16_t minutes = 5;
 unsigned long shutdown_ms = millis() + 1000 * 60 * minutes;
@@ -38,13 +37,6 @@ void on_data() {
 
 void setup() {
   Serial.begin(115200);
-
-  // setup i2s output
-  auto cfg = i2s.defaultConfig();
-  cfg.pin_bck = 26;
-  cfg.pin_ws = 25;
-  cfg.pin_data = 22;
-  i2s.begin(cfg);
 
   // LED
   pinMode(LED_BUILTIN, OUTPUT);

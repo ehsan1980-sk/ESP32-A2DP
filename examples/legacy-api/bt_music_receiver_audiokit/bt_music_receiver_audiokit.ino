@@ -16,20 +16,34 @@
 
 // ==> Example A2DP Receiver which uses the A2DP I2S output to an AudioKit board
 
-#include "AudioTools.h"  // https://github.com/pschatzmann/arduino-audio-tools
-#include "AudioLibs/AudioKit.h" // https://github.com/pschatzmann/arduino-audiokit
-#include "BluetoothA2DPSink.h" // https://github.com/pschatzmann/ESP32-A2DP
+#include "AudioKitHAL.h" // https://github.com/pschatzmann/arduino-audiokit
+#include "BluetoothA2DPSink.h"
 
-AudioKitStream kit;
-BluetoothA2DPSink a2dp_sink(kit);
+AudioKit kit;
+BluetoothA2DPSink a2dp_sink;
 
 void setup() {
+  //LOGLEVEL_AUDIOKIT = AudioKitInfo;
   Serial.begin(115200);
-  kit.begin();
-  kit.setVolume(1.0); // max volume
 
+  // setup codec chip
+  auto cfg = kit.defaultConfig(AudioOutput);
+  cfg.i2s_active = false;
+  kit.begin(cfg);
+  kit.setVolume(1.0);
+
+  Serial.println("Starting A2DP...");
+  // define custom pins pins
+  i2s_pin_config_t my_pin_config = {
+      .mck_io_num = PIN_I2S_AUDIO_KIT_MCLK,
+      .bck_io_num = PIN_I2S_AUDIO_KIT_BCK,
+      .ws_io_num = PIN_I2S_AUDIO_KIT_WS,
+      .data_out_num = PIN_I2S_AUDIO_KIT_DATA_OUT,
+      .data_in_num = I2S_PIN_NO_CHANGE
+  };
+  a2dp_sink.set_pin_config(my_pin_config);
+  // start a2dp
   a2dp_sink.start("AudioKit");  
-  //a2dp_sink.set_volume(255); // max volume
 
 }
 

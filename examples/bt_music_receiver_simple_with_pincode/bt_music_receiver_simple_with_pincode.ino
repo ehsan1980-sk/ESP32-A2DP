@@ -14,24 +14,17 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// ==> Example A2DP Receiver which uses connection_state an audio_state callback
+// ==> Example A2DP Receiver which requires a confirmation - we use a Sensitive Touch pin
 
 #include "AudioTools.h"  // https://github.com/pschatzmann/arduino-audio-tools
 #include "BluetoothA2DPSink.h" // https://github.com/pschatzmann/ESP32-A2DP
 
+
+const int BUTTON = 13; // Sensitive Touch 
+const int BUTTON_PRESSED = 40; // touch limit
+
 I2SStream i2s;
 BluetoothA2DPSink a2dp_sink(i2s);
-
-// for esp_a2d_connection_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv426esp_a2d_connection_state_t
-void connection_state_changed(esp_a2d_connection_state_t state, void *ptr){
-  Serial.println(a2dp_sink.to_str(state));
-}
-
-// for esp_a2d_audio_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv421esp_a2d_audio_state_t
-void audio_state_changed(esp_a2d_audio_state_t state, void *ptr){
-  Serial.println(a2dp_sink.to_str(state));
-}
-
 
 void setup() {
   Serial.begin(115200);
@@ -43,13 +36,17 @@ void setup() {
   cfg.pin_data = 22;
   i2s.begin(cfg);
 
-  // start a2dp
-  a2dp_sink.set_on_connection_state_changed(connection_state_changed);
-  a2dp_sink.set_on_audio_state_changed(audio_state_changed);
-  a2dp_sink.start("MyMusic");  
+  // setup a2dp
+  a2dp_sink.activate_pin_code(true);
+  a2dp_sink.start("ReceiverWithPin", false);  
 }
 
+void confirm() {
+  a2dp_sink.confirm_pin_code();
+}
 
 void loop() {
-  delay(1000); // do nothing
+ if (a2dp_sink.pin_code() != 0 && touchRead(BUTTON) < BUTTON_PRESSED) {
+   a2dp_sink.debounce(confirm, 5000);
+ }
 }

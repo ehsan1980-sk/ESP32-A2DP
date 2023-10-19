@@ -14,15 +14,26 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// ==> Example A2DP Receiver which uses I2S to an external DAC. The I2S output is managed via a separate Queue which might resolve popping sounds using the volume control on some IOS devices
+// ==> Example A2DP Receiver which uses I2S to an external DAC. The I2S output is managed via a separate Queue which might resolve issues mainly using the volume control on some IOS devices
 
-#include "BluetoothA2DPSinkQueued.h"
+#include "AudioTools.h"  // https://github.com/pschatzmann/arduino-audio-tools
+#include "BluetoothA2DPSinkQueued.h" // https://github.com/pschatzmann/ESP32-A2DP
 
-BluetoothA2DPSinkQueued a2dp_sink;
+I2SStream i2s;
+BluetoothA2DPSinkQueued a2dp_sink(i2s);
 
 void setup() {
-  a2dp_sink.start("MyMusicQueued");  
+  Serial.begin(115200);
 
+  // setup i2s output
+  auto cfg = i2s.defaultConfig();
+  cfg.pin_bck = 26;
+  cfg.pin_ws = 25;
+  cfg.pin_data = 22;
+  i2s.begin(cfg);
+
+  // start a2dp
+  a2dp_sink.start("MyMusicQueued");  
 }
 
 

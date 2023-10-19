@@ -16,11 +16,9 @@
 
 // ==> Example A2DP Receiver which uses connection_state an audio_state callback
 
-#include "AudioTools.h"  // https://github.com/pschatzmann/arduino-audio-tools
-#include "BluetoothA2DPSink.h" // https://github.com/pschatzmann/ESP32-A2DP
+#include "BluetoothA2DPSink.h"
 
-I2SStream i2s;
-BluetoothA2DPSink a2dp_sink(i2s);
+BluetoothA2DPSink a2dp_sink;
 
 // for esp_a2d_connection_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv426esp_a2d_connection_state_t
 void connection_state_changed(esp_a2d_connection_state_t state, void *ptr){
@@ -35,15 +33,6 @@ void audio_state_changed(esp_a2d_audio_state_t state, void *ptr){
 
 void setup() {
   Serial.begin(115200);
-
-  // setup i2s output
-  auto cfg = i2s.defaultConfig();
-  cfg.pin_bck = 26;
-  cfg.pin_ws = 25;
-  cfg.pin_data = 22;
-  i2s.begin(cfg);
-
-  // start a2dp
   a2dp_sink.set_on_connection_state_changed(connection_state_changed);
   a2dp_sink.set_on_audio_state_changed(audio_state_changed);
   a2dp_sink.start("MyMusic");  

@@ -14,26 +14,21 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// ==> Example A2DP Receiver which uses the A2DP I2S output to an AudioKit board
+// ==> Example which shows how to disconnect and reconnect
 
-#include "AudioTools.h"  // https://github.com/pschatzmann/arduino-audio-tools
-#include "AudioLibs/AudioKit.h" // https://github.com/pschatzmann/arduino-audiokit
-#include "BluetoothA2DPSink.h" // https://github.com/pschatzmann/ESP32-A2DP
+#include "BluetoothA2DPSink.h"
 
-AudioKitStream kit;
-BluetoothA2DPSink a2dp_sink(kit);
+BluetoothA2DPSink a2dp_sink;
+bool connected = true;
 
 void setup() {
   Serial.begin(115200);
-  kit.begin();
-  kit.setVolume(1.0); // max volume
-
-  a2dp_sink.start("AudioKit");  
-  //a2dp_sink.set_volume(255); // max volume
+  a2dp_sink.set_auto_reconnect(true);
+  a2dp_sink.start("MyMusic");  
 
 }
 
 
 void loop() {
-  delay(1000); // do nothing
+  delay(60000); // do nothing
 }

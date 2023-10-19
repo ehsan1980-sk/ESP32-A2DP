@@ -13,10 +13,11 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "BluetoothA2DPSink.h"
+#include "AudioTools.h"  // https://github.com/pschatzmann/arduino-audio-tools
+#include "BluetoothA2DPSink.h" // https://github.com/pschatzmann/ESP32-A2DP
 
-
-BluetoothA2DPSink a2dp_sink;
+I2SStream i2s;
+BluetoothA2DPSink a2dp_sink(i2s);
 bool is_active = true;
 
 void avrc_metadata_callback(uint8_t id, const uint8_t *text) {
@@ -25,6 +26,15 @@ void avrc_metadata_callback(uint8_t id, const uint8_t *text) {
 
 void setup() {
   Serial.begin(115200);
+
+  // setup i2s output
+  auto cfg = i2s.defaultConfig();
+  cfg.pin_bck = 26;
+  cfg.pin_ws = 25;
+  cfg.pin_data = 22;
+  i2s.begin(cfg);
+
+
   a2dp_sink.set_avrc_metadata_callback(avrc_metadata_callback);
   a2dp_sink.start("MyMusic");  
 }

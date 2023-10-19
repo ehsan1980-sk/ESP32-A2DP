@@ -14,26 +14,31 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// ==> Example A2DP Receiver which uses the A2DP I2S output to an AudioKit board
+// ==> Example A2DP Receiver which uses I2S to an external DAC
 
-#include "AudioTools.h"  // https://github.com/pschatzmann/arduino-audio-tools
-#include "AudioLibs/AudioKit.h" // https://github.com/pschatzmann/arduino-audiokit
-#include "BluetoothA2DPSink.h" // https://github.com/pschatzmann/ESP32-A2DP
+#include "BluetoothA2DPSink.h"
 
-AudioKitStream kit;
-BluetoothA2DPSink a2dp_sink(kit);
+BluetoothA2DPSink a2dp_sink;
+
+/// callback which is notified on update
+void rssi(esp_bt_gap_cb_param_t::read_rssi_delta_param  &rssiParam){
+  Serial.print("rssi value: ");
+  Serial.println(rssiParam.rssi_delta);
+}
 
 void setup() {
-  Serial.begin(115200);
-  kit.begin();
-  kit.setVolume(1.0); // max volume
-
-  a2dp_sink.start("AudioKit");  
-  //a2dp_sink.set_volume(255); // max volume
+  Serial.begin(119200);
+  a2dp_sink.set_rssi_active(true);
+  a2dp_sink.set_rssi_callback(rssi);
+  a2dp_sink.start("MyMusic");  
 
 }
 
 
 void loop() {
-  delay(1000); // do nothing
+  delay(5000);
+  // we can also display the last value 
+  Serial.print("last rssi value: ");
+  Serial.println(a2dp_sink.get_last_rssi().rssi_delta);
+
 }

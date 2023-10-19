@@ -16,13 +16,23 @@
 
 // ==> Example which shows how to disconnect and reconnect
 
-#include "BluetoothA2DPSink.h"
+#include "AudioTools.h"  // https://github.com/pschatzmann/arduino-audio-tools
+#include "BluetoothA2DPSink.h" // https://github.com/pschatzmann/ESP32-A2DP
 
-BluetoothA2DPSink a2dp_sink;
+I2SStream i2s;
+BluetoothA2DPSink a2dp_sink(i2s);
 bool connected = true;
 
 void setup() {
   Serial.begin(115200);
+
+  // setup i2s output
+  auto cfg = i2s.defaultConfig();
+  cfg.pin_bck = 26;
+  cfg.pin_ws = 25;
+  cfg.pin_data = 22;
+  i2s.begin(cfg);
+
   //a2dp_sink.set_auto_reconnect(false);
   a2dp_sink.start("MyMusic");  
 

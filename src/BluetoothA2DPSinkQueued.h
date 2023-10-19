@@ -23,7 +23,18 @@ enum A2DPRingBufferMode {
  */
 class BluetoothA2DPSinkQueued : public BluetoothA2DPSink {
     public:
-        BluetoothA2DPSinkQueued() = default;
+
+#if A2DP_I2S_AUDIOTOOLS
+        /// Constructor
+        BluetoothA2DPSinkQueued(audio_tools::AudioOutput &out) : BluetoothA2DPSink(out) {}
+        /// Constructor
+        BluetoothA2DPSinkQueued(audio_tools::AudioStream &out) : BluetoothA2DPSink(out) {}
+
+#endif
+
+        /// Constructor
+        BluetoothA2DPSinkQueued() :BluetoothA2DPSink()  {}
+
 
         /// Defines the stack size of the i2s task (in bytes)
         void set_i2s_stack_size(int size){

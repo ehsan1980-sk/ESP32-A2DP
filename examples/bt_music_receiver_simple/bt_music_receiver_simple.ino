@@ -16,11 +16,23 @@
 
 // ==> Example A2DP Receiver which uses I2S to an external DAC
 
-#include "BluetoothA2DPSink.h"
+#include "AudioTools.h"  // https://github.com/pschatzmann/arduino-audio-tools
+#include "BluetoothA2DPSink.h" // https://github.com/pschatzmann/ESP32-A2DP
 
-BluetoothA2DPSink a2dp_sink;
+I2SStream i2s;
+BluetoothA2DPSink a2dp_sink(i2s);
 
 void setup() {
+  Serial.begin(115200);
+
+  // setup i2s output
+  auto cfg = i2s.defaultConfig();
+  cfg.pin_bck = 26;
+  cfg.pin_ws = 25;
+  cfg.pin_data = 22;
+  i2s.begin(cfg);
+
+  // start a2dp
   a2dp_sink.start("MyMusic");  
 
 }
