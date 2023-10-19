@@ -81,7 +81,7 @@ void read_data_stream(const uint8_t *data, uint32_t length)
   // Do something with the data packet
 }
 ```
-In the ```a2dp_sink.set_stream_reader()``` method you can provide an optional parameter that defines if you want the output to I2S to be active or deactive - So you can use this method to e.g. to switch off I2S just by calling ```a2dp_sink.set_stream_reader(read_data_stream, false)```
+In the ```a2dp_sink.set_stream_reader()``` method you can provide an optional parameter that defines if you want the output to I2S to be active or deactive - So you can use this method to e.g. to switch off I2S just by calling ```a2dp_sink.set_stream_reader(read_data_stream, false)```. This callback is providing the audio data after adjusting the volume. If you need the data independent of the volume control, you can use ```a2dp_sink.set_raw_stream_reader()```!
 
 ### Support for Metadata
 
@@ -215,9 +215,13 @@ This library uses the ESP32 logger that you can activate in Arduino in - Tools -
 
 ## Architecture / Dependencies 
 
-The current code is purely dependent on the ESP-IDF (which is also provided by the Arduino ESP32 core). There are no other dependencies and this includes the Arduino API! 
+The current code has a dependency to the following project:
 
-Therefore we support:
+- [Arduino AudioTools](https://github.com/pschatzmann/arduino-audio-tools)
+
+However this can be deactivated in the config.h or by setting the A2DP_I2S_AUDIOTOOLS to false. 
+
+We support:
 
 - Arduino
 - [PlatformIO](https://github.com/pschatzmann/ESP32-A2DP/wiki/PlatformIO)
