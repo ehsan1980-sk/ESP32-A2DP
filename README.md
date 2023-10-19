@@ -46,9 +46,8 @@ void loop() {
     delay(100);
 }
 ```
-
-
-For further details please consult the [Output Chapter in the Wiki](https://github.com/pschatzmann/ESP32-A2DP/wiki/Audio-Output).
+This starts an A2DP sink which sends the audio output via I2S to an external DAC using the indicated pins.
+For further details please consult the [Output Chapter in the Wiki](https://github.com/pschatzmann/ESP32-A2DP/wiki/Audio-Output) and the [Readme](https://github.com/pschatzmann/arduino-audio-tools) and [Wiki](https://github.com/pschatzmann/arduino-audio-tools/wiki) of the AudioTools.
 Please do not forget to install the https://github.com/pschatzmann/arduino-audio-tools library!
 
 
