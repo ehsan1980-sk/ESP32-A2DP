@@ -23,115 +23,34 @@ The Hands-Free Profile (HFP), Headset Profile (HSP) and stand alone AVRCP withou
 
 This can be used e.g. to build your own Bluetooth Speaker.
 
-### A Simple I2S Example (A2DS Sink) using default Pins
-Here is the simplest example which just uses the proper default settings:
+Because Espressif was changing the I2S API, I decided to use the Audio Output functionality of the [AudioTools project](https://github.com/pschatzmann/arduino-audio-tools).
 
 ```
+#include "AudioTools.h"
 #include "BluetoothA2DPSink.h"
 
-BluetoothA2DPSink a2dp_sink;
+I2SStream out;
+BluetoothA2DPSink a2dp_sink(out);
 
 void setup() {
+    auto cfg = out.defaultConfig();
+    config.pin_bck = 26;
+    config.pin_ws = 25;
+    config.pin_data = 22;
+
+    out.begin(cfg); 
     a2dp_sink.start("MyMusic");
 }
 
 void loop() {
-}
-```
-This creates a new Bluetooth device with the name “MyMusic” and the output will be sent to the following default I2S pins which need to be conected to an external DAC:
-- bck_io_num = 26
-- ws_io_num = 25
-- data_out_num = 22
-
-
-### Defining Pins
-
-You can define your own pins easily by calling the ```set_pin_config``` method in the setup before the ```start```.
-
-```
-#include "BluetoothA2DPSink.h"
-
-BluetoothA2DPSink a2dp_sink;
-
-void setup() {
-    i2s_pin_config_t my_pin_config = {
-        .mck_io_num = I2S_PIN_NO_CHANGE,
-        .bck_io_num = 26,
-        .ws_io_num = 25,
-        .data_out_num = 22,
-        .data_in_num = I2S_PIN_NO_CHANGE
-    };
-    a2dp_sink.set_pin_config(my_pin_config);
-    a2dp_sink.start("MyMusic");
-}
-
-void loop() {
+    delay(100);
 }
 ```
 
-### Using your specific i2s_config
 
-In some cases you might want to use your specific i2s_config settings. E.g. to request a different bits_per_sample (e.g. 32) or to use the use_apll or to optimize the dma buffer...
+For further details please consult the [Output Chapter in the Wiki](https://github.com/pschatzmann/ESP32-A2DP/wiki/Audio-Output).
+Please do not forget to install the https://github.com/pschatzmann/arduino-audio-tools library!
 
-```
-#include "BluetoothA2DPSink.h"
-
-BluetoothA2DPSink a2dp_sink;
-
-void setup() {
-
-    static i2s_config_t i2s_config = {
-      .mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_TX),
-      .sample_rate = 44100, // updated automatically by A2DP
-      .bits_per_sample = (i2s_bits_per_sample_t)32,
-      .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
-      .communication_format = (i2s_comm_format_t) (I2S_COMM_FORMAT_STAND_I2S),
-      .intr_alloc_flags = 0, // default interrupt priority
-      .dma_buf_count = 8,
-      .dma_buf_len = 64,
-      .use_apll = true,
-      .tx_desc_auto_clear = true // avoiding noise in case of data unavailability
-  };
-  a2dp_sink.set_i2s_config(i2s_config);
-  a2dp_sink.start("MyMusic");
-}
-
-void loop() {
-}
-
-```
-
-### Output to the Internal DAC
-You can also send the output directly to the internal DAC of the ESP32 by providing the corresponding i2s_config:
-
-```
-#include "BluetoothA2DPSink.h"
-
-BluetoothA2DPSink a2dp_sink;
-
-void setup() {
-    static const i2s_config_t i2s_config = {
-        .mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN),
-        .sample_rate = 44100, // corrected by info from bluetooth
-        .bits_per_sample = (i2s_bits_per_sample_t) 16, /* the DAC module will only take the 8bits from MSB */
-        .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
-        .communication_format = (i2s_comm_format_t)I2S_COMM_FORMAT_STAND_MSB,
-        .intr_alloc_flags = 0, // default interrupt priority
-        .dma_buf_count = 8,
-        .dma_buf_len = 64,
-        .use_apll = false
-    };
-
-    a2dp_sink.set_i2s_config(i2s_config);
-    a2dp_sink.start("MyMusic");
-
-}
-
-void loop() {
-}
-```
-
-The output goes now to the DAC pins GPIO25 (Channel 1) and GPIO26 (Channel 2).
 
 ### Accessing the Sink Data Stream with Callbacks
 

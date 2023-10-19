@@ -16,8 +16,12 @@
 #pragma once
 
 #include "BluetoothA2DPCommon.h"
-#include "freertos/ringbuf.h"
-
+#if A2DP_I2S_AUDIOTOOLS
+#  include "AudioConfig.h"
+#  include "AudioTools/AudioOutput.h"
+#  include "AudioTools/AudioStreams.h"
+#  include "AudioTools/AudioIO.h"
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -91,32 +95,64 @@ class BluetoothA2DPSink : public BluetoothA2DPCommon {
 #endif    
 
   public: 
+#if A2DP_I2S_AUDIOTOOLS
     /// Constructor
-    BluetoothA2DPSink();
+    BluetoothA2DPSink(audio_tools::AudioOutput &out) {
+        p_out = &out;
+        init();
+    }
+    /// Constructor
+    BluetoothA2DPSink(audio_tools::AudioStream &out) {
+        static audio_tools::AdapterAudioStreamToAudioOutput out_adapter(out);
+        p_out = &out_adapter;
+        init();
+    }
+
+    /// Constructor
+    BluetoothA2DPSink() {
+        is_i2s_active = false;
+        is_i2s_output = false;
+        init();
+    }
+
+#else
+
+    /// Constructor
+    BluetoothA2DPSink() {
+        init();
+    }
+
+#endif
+
     /// Destructor - stops the playback and releases all resources
     virtual ~BluetoothA2DPSink();
 
-#if A2DP_I2S_SUPPORT
-    /// Define the pins
+#if A2DP_I2S_SUPPORT && !A2DP_I2S_AUDIOTOOLS
+
+    /// OBSOLETE: Define the pins
     virtual void set_pin_config(i2s_pin_config_t pin_config);
    
-    /// Define an alternative i2s port other then 0 
+    /// OBSOLETE: Define an alternative i2s port other then 0 
     virtual void set_i2s_port(i2s_port_t i2s_num);
    
-    /// Define the i2s configuration
+    /// OBSOLETE: Define the i2s configuration
     virtual void set_i2s_config(i2s_config_t i2s_config);
 
-    /// set output to I2S_CHANNEL_STEREO (default) or I2S_CHANNEL_MONO
+    /// OBSOLETE: set output to I2S_CHANNEL_STEREO (default) or I2S_CHANNEL_MONO
     virtual void set_channels(i2s_channel_t channels) {
         set_mono_downmix(channels==I2S_CHANNEL_MONO);
     }
 
-    /// Defines the bits per sample for output (if > 16 output will be expanded)
-    virtual void set_bits_per_sample(int bps) { i2s_config.bits_per_sample = (i2s_bits_per_sample_t) bps; }
+    /// OBSOLETE: Defines the bits per sample for output (if > 16 output will be expanded)
+    virtual void set_bits_per_sample(int bps) { 
+        i2s_config.bits_per_sample = (i2s_bits_per_sample_t) bps; 
+    }
 
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 1, 1)
+#  if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 1, 1) && !A2DP_I2S_AUDIOTOOLS
+
+    /// OBSOLETE
     virtual esp_err_t i2s_mclk_pin_select(const uint8_t pin);
-#endif
+#  endif
 
 #endif
 
@@ -298,13 +334,13 @@ class BluetoothA2DPSink : public BluetoothA2DPCommon {
     xTaskHandle app_task_handle = nullptr;
 
     bool is_i2s_output = A2DP_I2S_SUPPORT;
-#if A2DP_I2S_SUPPORT
+#if A2DP_I2S_SUPPORT && !A2DP_I2S_AUDIOTOOLS
     i2s_config_t i2s_config;
     i2s_pin_config_t pin_config;    
     i2s_channel_t i2s_channels = I2S_CHANNEL_STEREO;
     i2s_port_t i2s_port = I2S_NUM_0; 
-    bool is_i2s_active = false;
 #endif
+    bool is_i2s_active = false;
     uint16_t m_sample_rate = 0; 
     uint32_t m_pkt_cnt = 0;
     //esp_a2d_audio_state_t m_audio_state = ESP_A2D_AUDIO_STATE_STOPPED;
@@ -350,7 +386,11 @@ class BluetoothA2DPSink : public BluetoothA2DPCommon {
     char remote_name[ESP_BT_GAP_MAX_BDNAME_LEN + 1];
 #endif
 
+#if A2DP_I2S_AUDIOTOOLS
+    audio_tools::AudioOutput *p_out = nullptr;
+#endif
     // protected methods
+    virtual void init();
     virtual int init_bluetooth();
     virtual void app_task_start_up(void);
     virtual void app_task_shut_down(void);

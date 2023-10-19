@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BluetoothA2DPSink.h"
+#include "freertos/ringbuf.h"
 
 #if A2DP_I2S_SUPPORT
 
