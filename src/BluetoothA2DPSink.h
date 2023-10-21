@@ -28,10 +28,6 @@ extern "C" {
 
 #define APP_SIG_WORK_DISPATCH (0x01)
 
-#ifndef BT_AV_TAG
-#define BT_AV_TAG               "BT_AV"
-#endif
-
 /* @brief event for handler "bt_av_hdl_stack_up */
 enum {
     BT_APP_EVT_STACK_UP = 0,
@@ -41,7 +37,6 @@ extern "C" void ccall_app_a2d_callback(esp_a2d_cb_event_t event, esp_a2d_cb_para
 extern "C" void ccall_app_rc_ct_callback(esp_avrc_ct_cb_event_t event, esp_avrc_ct_cb_param_t *param);
 extern "C" void ccall_app_gap_callback(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param);
 extern "C" void ccall_app_task_handler(void *arg);
-extern "C" void ccall_i2s_task_handler(void *arg);
 extern "C" void ccall_audio_data_callback(const uint8_t *data, uint32_t len);
 extern "C" void ccall_av_hdl_stack_evt(uint16_t event, void *p_param);
 extern "C" void ccall_av_hdl_a2d_evt(uint16_t event, void *p_param);
@@ -51,6 +46,10 @@ extern "C" void ccall_av_hdl_avrc_evt(uint16_t event, void *p_param);
 extern "C" void ccall_app_rc_tg_callback(esp_avrc_tg_cb_event_t event, esp_avrc_tg_cb_param_t *param);
 extern "C" void ccall_av_hdl_avrc_tg_evt(uint16_t event, void *p_param);
 #endif    
+
+// to support static callback functions
+class BluetoothA2DPSink;
+extern BluetoothA2DPSink* actual_bluetooth_a2dp_sink;
 
 // defines the mechanism to confirm a pin request
 enum PinCodeRequest {Undefined, Confirm, Reply};
@@ -74,8 +73,6 @@ class BluetoothA2DPSink : public BluetoothA2DPCommon {
     friend void ccall_app_gap_callback(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param);
     /// task handler
     friend void ccall_app_task_handler(void *arg);
-    /// task hander for i2s 
-    friend void ccall_i2s_task_handler(void *arg);
     /// Callback for music stream 
     friend void ccall_audio_data_callback(const uint8_t *data, uint32_t len);
     /// av event handler
@@ -283,7 +280,6 @@ class BluetoothA2DPSink : public BluetoothA2DPCommon {
         return &peer_bd_addr;
     }
 
-
     /// Activates the rssi reporting
     void set_rssi_active(bool active){
         rssi_active = active;
@@ -340,7 +336,7 @@ class BluetoothA2DPSink : public BluetoothA2DPCommon {
     i2s_channel_t i2s_channels = I2S_CHANNEL_STEREO;
     i2s_port_t i2s_port = I2S_NUM_0; 
 #endif
-    bool is_i2s_active = false;
+    volatile bool is_i2s_active = false;
     uint16_t m_sample_rate = 0; 
     uint32_t m_pkt_cnt = 0;
     //esp_a2d_audio_state_t m_audio_state = ESP_A2D_AUDIO_STATE_STOPPED;
@@ -410,7 +406,7 @@ class BluetoothA2DPSink : public BluetoothA2DPCommon {
 
     virtual bool is_reconnect(esp_a2d_disc_rsn_t type) {
         bool result = is_autoreconnect_allowed && (reconnect_status==AutoReconnect || reconnect_status==IsReconnecting) && has_last_connection();
-        ESP_LOGI(BT_AV_TAG,"is_reconnect: %s", result ? "true":"false");
+        ESP_LOGI(BT_TAG,"is_reconnect: %s", result ? "true":"false");
         return result;
     }
 
@@ -453,18 +449,15 @@ class BluetoothA2DPSink : public BluetoothA2DPCommon {
 
 #if A2DP_I2S_SUPPORT
     virtual void init_i2s();
+    virtual void set_i2s_active(bool active);
 
     /// output audio data e.g. to i2s or to queue
-    virtual size_t write_audio(const uint8_t *data, size_t size){
-        return i2s_write_data(data, size);
-    }
+    virtual size_t write_audio(const uint8_t *data, size_t size);
 
     /// writes the data to i2s
     size_t i2s_write_data(const uint8_t* data, size_t item_size);
 
-
     /// dummy functions needed for BluetoothA2DPSinkQueued
-    virtual void i2s_task_handler(void *arg) {}
     virtual void bt_i2s_task_start_up(void) {}
     virtual void bt_i2s_task_shut_down(void) {}
 
@@ -477,6 +470,7 @@ class BluetoothA2DPSink : public BluetoothA2DPCommon {
     void set_scan_mode_connectable_default() override {
         set_scan_mode_connectable(true);
     }
+
 
 };
 

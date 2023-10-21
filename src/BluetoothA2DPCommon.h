@@ -110,9 +110,7 @@ typedef struct {
 } bt_app_msg_t;
 
 
-#define BT_AV_TAG        "BT_AV"
-#define BT_RC_CT_TAG     "RCCT"
-#define BT_APP_TAG       "BT_API"
+#define BT_TAG        "BT"
 
 /* AVRCP used transaction labels */
 #define APP_RC_CT_TL_GET_CAPS            (0)
@@ -158,7 +156,7 @@ class BluetoothA2DPCommon {
 
         /// Sets the volume (range 0 - 255)
         virtual void set_volume(uint8_t volume){
-            ESP_LOGI(BT_AV_TAG, "set_volume: %d", volume);
+            ESP_LOGI(BT_TAG, "set_volume: %d", volume);
             volume_value = volume;
             volume_control()->set_volume(volume);
             volume_control()->set_enabled(true);
@@ -279,13 +277,13 @@ class BluetoothA2DPCommon {
         const char *m_avrc_playback_state_str[5] = {"stopped", "playing", "paused", "forward seek", "reverse seek"};
         esp_a2d_audio_state_t audio_state = ESP_A2D_AUDIO_STATE_STOPPED;
         esp_a2d_connection_state_t connection_state = ESP_A2D_CONNECTION_STATE_DISCONNECTED;
-        UBaseType_t task_priority = configMAX_PRIORITIES - 10;
+        UBaseType_t task_priority = 0;  // 0 = trigger automatic determination from BTC_TASK
         // volume 
         uint8_t volume_value = 0;
         bool is_volume_used = false;
         BaseType_t task_core = 1;
 
-        int event_queue_size = 20;
+        int event_queue_size = 50;
         int event_stack_size = 3072;
 
 
