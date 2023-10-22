@@ -1414,7 +1414,7 @@ size_t BluetoothA2DPSink::write_audio(const uint8_t *data, size_t size){
     int result = 0;
     int open = size;
     while(open>0){
-        int to_write = std::min(open, 1024);
+        int to_write = std::min(open, A2DP_I2S_MAX_SIZE);
         int written = i2s_write_data(data+result, to_write);
         result += written;
         open -= written;

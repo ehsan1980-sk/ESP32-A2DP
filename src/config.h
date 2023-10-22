@@ -9,6 +9,12 @@
 #  define A2DP_I2S_SUPPORT true
 #endif
 
+// Max I2S write size  
+#ifndef A2DP_I2S_MAX_SIZE
+#  define A2DP_I2S_MAX_SIZE 1024
+#endif
+
+
 // Use https://github.com/pschatzmann/arduino-audio-tools as output library: 
 #ifndef A2DP_I2S_AUDIOTOOLS
 #  define A2DP_I2S_AUDIOTOOLS true
